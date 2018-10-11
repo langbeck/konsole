@@ -167,8 +167,8 @@ public:
 private:
     qint64 startOfLine(int lineno);
 
-    HistoryFile _index; // lines Row(qint64)
-    HistoryFile _cells; // text  Row(Character)
+    SecureHistoryFile _index; // lines Row(qint64)
+    SecureHistoryFile _cells; // text  Row(Character)
     HistoryFile _lineflags; // flags Row(unsigned char)
 };
 
