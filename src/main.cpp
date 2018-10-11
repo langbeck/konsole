@@ -37,6 +37,9 @@
 #include <Kdelibs4Migration>
 #include <kdbusservice.h>
 
+// QCA
+#include <QtCrypto>
+
 using Konsole::Application;
 
 // fill the KAboutData structure with information about contributors to Konsole.
@@ -83,6 +86,9 @@ extern "C" int Q_DECL_EXPORT kdemain(int argc, char *argv[])
     const QByteArray qtUseGLibOld = qgetenv("QT_NO_GLIB");
     qputenv("QT_NO_GLIB", "1");
 #endif
+
+    // Initialize QCA to enable SecureHistoryFile support
+    QCA::Initializer init;
 
     auto app = new QApplication(argc, argv);
 
