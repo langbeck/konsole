@@ -28,6 +28,10 @@
 #include <QList>
 #include <QVector>
 #include <QTemporaryFile>
+#include <QtEndian>
+
+// QCA
+#include <QtCrypto>
 
 #include "konsoleprivate_export.h"
 
@@ -72,6 +76,29 @@ private:
     //when _readWriteBalance goes below this threshold, the file will be mmap'ed automatically
     static const int MAP_THRESHOLD = -1000;
 };
+
+/*
+   An secure version of HistoryFile that uses an ephemeral key to encrypt the
+   data before writing to the underlining tmpfile.
+*/
+class SecureHistoryFile : public HistoryFile
+{
+public:
+    SecureHistoryFile();
+    void add(const char *buffer, qint64 count) Q_DECL_OVERRIDE;
+    void get(char *buffer, qint64 size, qint64 loc) Q_DECL_OVERRIDE;
+
+private:
+    QCA::MemoryRegion decrypt_block(QByteArray &buf, qint64 block_idx);
+
+    QCA::SecureArray _iv_ref;
+    qint64_be *_iv_counter;
+    QCA::SymmetricKey _key;
+    QCA::Cipher _rcipher;
+    QCA::Cipher _wcipher;
+    QByteArray _rbuf;
+};
+
 
 //////////////////////////////////////////////////////////////////////
 

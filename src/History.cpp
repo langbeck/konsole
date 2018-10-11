@@ -227,6 +227,54 @@ qint64 HistoryFile::len() const
     return _length;
 }
 
+
+
+// Secure History File //////////////////////////////////////
+SecureHistoryFile::SecureHistoryFile() :
+    _rcipher(QString::fromUtf8("aes128"), QCA::Cipher::CTR),
+    _wcipher(QString::fromUtf8("aes128"), QCA::Cipher::CTR)
+{
+    _iv_ref = QCA::Random::randomArray(8) + QCA::SecureArray(8, 0);
+    _iv_counter = (((qint64_be*) _iv_ref.data()) + 1);
+    _key = QCA::SymmetricKey(16);
+    _rbuf.reserve(0x400);
+
+    _wcipher.setup(QCA::Encode, _key, _iv_ref);
+    _rcipher.setup(QCA::Decode, _key, _iv_ref);
+}
+
+void SecureHistoryFile::add(const char *buffer, qint64 count) {
+    auto encrypted = _wcipher.update(QByteArray(buffer, count));
+    Q_ASSERT(_wcipher.ok());
+
+    HistoryFile::add(encrypted.constData(), count);
+}
+
+void SecureHistoryFile::get(char *buffer, qint64 size, qint64 loc) {
+    qint64 base = loc & ~0x0F;
+    qint64 off = loc & 0x0F;
+
+    _rbuf.resize(size + off);
+    HistoryFile::get(_rbuf.data(), size + off, base);
+
+    auto decrypted = decrypt_block(_rbuf, loc >> 4);
+    memcpy(buffer, decrypted.constData() + off, size);
+}
+
+
+QCA::MemoryRegion SecureHistoryFile::decrypt_block(QByteArray &buf, qint64 block_idx) {
+    // Set IV counter to the current block index and setup the read cipher
+    *_iv_counter = block_idx;
+    _rcipher.setup(QCA::Decode, _key, _iv_ref);
+
+    auto decrypted = _rcipher.update(buf);
+    Q_ASSERT(_rcipher.ok());
+
+    return decrypted;
+}
+
+
+
 // History Scroll abstract base class //////////////////////////////////////
 
 HistoryScroll::HistoryScroll(HistoryType *t) :
