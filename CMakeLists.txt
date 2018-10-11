@@ -54,6 +54,13 @@ set_package_properties(KF5DocTools PROPERTIES DESCRIPTION
     TYPE OPTIONAL
 )
 
+find_package(Qca-qt5 2.1.0 REQUIRED)
+set_package_properties(Qca-qt5 PROPERTIES
+    DESCRIPTION "Support for encryption"
+    URL "http://download.kde.org/stable/qca-qt5/"
+    TYPE REQUIRED
+)
+
 if(NOT APPLE)
     find_package(X11)
     set_package_properties(X11 PROPERTIES TYPE OPTIONAL)

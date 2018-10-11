@@ -127,6 +127,7 @@ set(konsole_LIBS
                  KF5::DBusAddons
                  KF5::GlobalAccel
                  KF5::NewStuff
+                 qca-qt5
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
